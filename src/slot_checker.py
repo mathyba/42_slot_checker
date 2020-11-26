@@ -82,7 +82,7 @@ class Intra(object):
 
 class Config(object):
 
-    def __init__(self, login, password, projects, send=None, refresh=30, range=7, disponibility="00:00-23:59"):
+    def __init__(self, login, password, projects, send=None, refresh=30, range=7, disponibility="00:00-23:59", avoid_spam=False):
         self.login = login
         self.password = password
         self.refresh = refresh
@@ -90,6 +90,7 @@ class Config(object):
         self.sender = send
         self.start = date.today()
         self.end = date.today() + timedelta(days=range)
+        self.avoid_spam = avoid_spam
         try:
             hours = disponibility.split('-')
             self.start_dispo = datetime.strptime(hours[0], '%H:%M').time()
@@ -133,6 +134,7 @@ class ConfigSchema(Schema):
     refresh = fields.Int(required=False, default=30)
     range = fields.Int(required=False, default=7)
     disponibility = fields.Str(required=False, default="00:00-23:59")
+    avoid_spam = fields.Boolean(required=False)
 
     @post_load
     def create_processing(self, data, **kwargs):
@@ -179,8 +181,9 @@ class Checker(object):
             log.info("[Health check] slot checker still alive")
             time.sleep(self.health_delay)
 
-    def run(self):
+    def run(self, nospam=False):
         self.health.start()
+        ignore = []
         while True:
             for project in self.config.projects:
                 slots = self.intra.get_project_slots(project, start=self.config.start, end=self.config.end)
@@ -197,9 +200,13 @@ class Checker(object):
                         if self.sender:
                             log.info("send to %s" % self.sender.send_option)
                             message = "Slot found for <b>%s</b> project :\n <b>%s</b> at <b>%s</b>" % (project, date.strftime('%A %d/%m'), date.strftime('%H:%M'))
-                            self.sender.send(message)
-                    else:
-                        log.info("the slot is not in the disponibility range, not sending")
+                            if not self.config.avoid_spam or slot['id'] not in ignore:
+                                self.sender.send(message)
+                                ignore.append(slot['id'])
+                            else:
+                                log.info(f"Not sending message about slot with id {slot['id']} to avoid spamming")
+                        else:
+                            log.info("the slot is not in the disponibility range, not sending")
             time.sleep(self.config.refresh)
     
     def quit(self):
@@ -236,4 +243,4 @@ if __name__ == "__main__":
     
     log.info("Starting the checker")
     checker = Checker(config)
-    checker.run()
+    checker.run(args.nospam)
