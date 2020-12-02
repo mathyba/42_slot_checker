@@ -5,8 +5,8 @@
 ## Usage
 
 ```
-./src/slot_checker.py -h
-usage: slot_checker.py [-h] [-c CONFIG] [-v]
+./checkslots -h
+usage: checkslots [-h] [-c CONFIG] [-v]
 
 42 slot checker
 
