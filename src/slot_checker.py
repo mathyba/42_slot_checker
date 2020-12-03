@@ -79,6 +79,10 @@ class Intra(object):
                 f"{get_slot_url(project)}/slots.json?start={start}&end={end}", timeout=3.05
             )
             slots = r.json()
+            if r.status_code == 404:
+                log.warning("Project %s does not exist", project)
+            elif r.status_code == 403:
+                log.warning("You don't have access to any correction slots for project %s", project)
             return slots
         except (httpx.RequestError, httpx.ReadTimeout, httpx.ConnectError) as err:
             if retries < max_retries:
@@ -248,17 +252,6 @@ class Checker(object):
                         else:
                             log.info("the slot is not in the disponibility range, not sending")
             time.sleep(self.config.refresh)
-    
-    def clean_errors(self):
-        self.errors = 0
-
-    def error(self, msg=None):
-        if msg is not None:
-            log.error(msg)
-        if self.errors >= self.errors_limit:
-            self.intra.close()
-            slot_checker_exception(SlotCheckError, "Too many errors while checking for available slots")
-        self.errors += 1
 
 
 if __name__ == "__main__":
