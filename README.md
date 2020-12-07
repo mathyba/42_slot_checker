@@ -111,17 +111,23 @@ Moreover, your slot page instead of a project slot page. You just have to add so
 ## Dev
 
 Be aware that the build stage will check that your code is blacked and linted.
+
+If you want to black your files manually and ensure they will pass the continuous integration test phase:
+```
+# Inside the root of your project directory
+docker run --rm -v (pwd):/data cytopia/black .
+```
+
 Pre-commit hooks have been configured to ease these checks during development:
 
 ```
-# if you created a virtual env from the requirements.txt, you don't need to do this
 pip install pre-commit
 ```
 
 Staged files will be checked anytime a change is committed.
 In case of a format error, the commit will fail but the files will be formatted.
 
-To run pre-commit checks manually:
+To run pre-commit checks manually (without commiting):
 
 ```
 # On staged files
@@ -136,22 +142,6 @@ This is discouraged, but to skip these checks while committing:
 ```
 git commit -m "foo" --no-verify
 ```
-
-If you don't wish to use pre-commit and want to black your files manually, using this containerized version will avoid OS-related differences with the build black stage.
-
-```
-# Inside the root of your project directory
-docker run --rm -v (pwd):/data cytopia/black .
-```
-
-# if you created a virtual env from the requirements.txt, you don't need to do this
-
-pip install pre-commit
-
-```
-The repo is already configured to run several checks prior to committing.
-If these checks fail, the commit is cancelled but files are formatted.
-
 
 ## TODO
 

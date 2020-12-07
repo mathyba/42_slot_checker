@@ -1,0 +1,16 @@
+name: Build
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run black
+        run: pip install black; python -m black . --check
+
+      - name: Run pylint
+        run: pip install pylint; python -m pylint **/*.py

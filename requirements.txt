@@ -4,5 +4,4 @@ marshmallow>=3.7
 argparse
 httpx>=0.16
 bs4
-pre-commit>=2.9.0
 pylint>=2.6.0
